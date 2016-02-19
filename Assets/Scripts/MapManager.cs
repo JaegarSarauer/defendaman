@@ -3,6 +3,19 @@ using System.Collections;
 using SimpleJSON;
 
 public class MapManager : MonoBehaviour {
+	// 
+	// VARIABLE DECLARATIONS
+	//
+	/* Constant string variables for building/parsing JSON. */
+	private const string ID =          "id";
+	private const string DATA =        "data";
+	private const string MAP =         "map";
+	private const string RESOURCE =    "resource";
+	private const string ITEM =        "item";
+	private const string BUILDING =    "building";
+	private const string TRANSACTION = "transaction";
+	private const string INCR =        "incr";
+	private const string DECR =        "decr";
 	/* A set of constant map update event types. */
 	enum EventType {
 		CREATE_MAP =        0,
@@ -14,21 +27,28 @@ public class MapManager : MonoBehaviour {
 		BUILDING_DSTR =     6
 	};
 	/* ID of map update event, i.e. its event type. */
-	EventType _id;
-	/* 2D int array containing map values. */
-	string _string_map;
+	private EventType _id;
+	/* 2D string array containing map values. */
+	private string _string_map;
 	/* 2D int array containing map values. */
 	private int[][] _map;
 	/* Ancillary data about the map update event. */
 	private string _data;
 
-	// Use this for initialization
-	void Start () {
+	//
+	// METHOD DEFINITIONS
+	//
+	/**
+	 * Use this for initialization.
+	 */
+	void Start() {
 	
 	}
 	
-	// Update is called once per frame
-	void Update () {
+	/**
+	 * Update is called once per frame.
+	 */ 
+	void Update() {
 		// message = Carson's send call from Networking Manager
 		string message = "dummy string";
 		receive_message(message);
@@ -36,12 +56,10 @@ public class MapManager : MonoBehaviour {
 
 	/**
 	 * Decode the received message and handle its event.
-	 * A message's "data" component can be broken down into its event type, 
-	 * the terrain/building type, and the terrain/building property values.
 	 * @param message 	received JSON message from NetworkingManager
 	 */ 
 	private void receive_message(string message) {
-		decode_message (message);
+		decode_message(message);
 		handle_event(_map, _id, _data);
 	}
 
@@ -56,18 +74,23 @@ public class MapManager : MonoBehaviour {
 
 		foreach (var node in msgObjects.Children) {
 			var obj = node.AsObject;
-			_string_map = obj ["map"];
-			_id = (EventType) (obj ["ID"].AsInt);
-			_data = obj ["data"];
+			_string_map = obj [MAP];
+			_id = (EventType)(obj [ID].AsInt);
+			_data = obj [DATA];
 		}
 	}
 
 	/**
-	 * Deserialize JSON string into 2d int array.
+	 * Deserialize JSON string into 2D int array.
 	 */
 	private int[][] parse_string_map(string map) {
 		// _map = json.deserialization<int>(map)
 		return _map;
+	}
+
+	/* Serialize 2D int array into JSON string. */
+	private string parse_int_map(int[][] map) {
+		return _string_map;
 	}
 
 	/**
@@ -89,6 +112,10 @@ public class MapManager : MonoBehaviour {
 			case EventType.ITEM_DROPPED:
 				break;
 			case EventType.ITEM_PICKEDUP:
+				break;
+			case EventType.BUILDING_HIT:
+				break;
+			case EventType.BUILDING_DSTR:
 				break;
 		}
 	}
