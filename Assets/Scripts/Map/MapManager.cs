@@ -21,7 +21,7 @@ public class MapManager : MonoBehaviour {
     /* A set of constant map update event types. */
     enum EventType {
         CREATE_MAP = 0,
-        RESOUCE_TAKEN = 1,
+        RESOURCE_TAKEN = 1,
         RESOURCE_DEPLETED = 2,
         ITEM_DROPPED = 3,
         ITEM_PICKEDUP = 4,
@@ -137,40 +137,12 @@ public class MapManager : MonoBehaviour {
 	}
 
     /**
-	 * Decode the received message and handle its event.
-	 * @param message 	received JSON message from NetworkingManager
-	 */
-    /*public void receive_message(JSONClass message, int id) {
-        var data = message["data"].ToString();
-        var data2 = message["data2"].AsInt;
-        var data3 = message["data3"].AsFloat;
-        _id = (EventType)id;
-        _data = message[DATA];
-        //decode_message(message);
-        handle_event(_map, _id, _data);
-	}*/
-
-    /**
-	 * Set the MapManager's private variables based on the parsed JSON string.
-	 * A message's "data" component can be broken down into its event type, 
-	 * the terrain/building type, and the terrain/building property values.
-	 * @param message 	received JSON message from NetworkingManager
-	 */
-    //private void decode_message(JSONClass msgObject) {
-    //	_string_map = msgObject[MAP];
-    //	_data = msgObject[DATA];
-    //}
-
-    /**
 	 * Deserialize JSON string into 2D int array.
 	 */
     private int[,] parse_string_map(string map) {
         // _map = json.deserialization<int>(map)
         return _map;
     }
-
-
-
 
     /* Serialize 2D int array into JSON string. */
     private string parse_int_map(int[][] map) {
@@ -191,9 +163,11 @@ public class MapManager : MonoBehaviour {
                 draw_map();
                 instantiate_pool();
                 break;
-            case EventType.RESOUCE_TAKEN:
+            case EventType.RESOURCE_TAKEN:
+				// TODO: decrease resources left
                 break;
             case EventType.RESOURCE_DEPLETED:
+				// TODO: trigger depleted animation
                 break;
             case EventType.ITEM_DROPPED:
                 break;
@@ -282,6 +256,7 @@ public class MapManager : MonoBehaviour {
                     _scenery.GetComponent<SpriteRenderer>().sprite = _mapSceneryObjects[(_mapScenery[x, y]) % _mapSceneryObjects.Count];
                     Instantiate(_scenery, new Vector3(x, y, -1), Quaternion.identity);
                 }
+				//TODO: Instantiate resource assets
             }
     }
 }

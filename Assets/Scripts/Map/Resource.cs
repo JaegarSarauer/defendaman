@@ -1,8 +1,11 @@
-﻿class Resource {
-    public int x;
-    public int y;
-    public int resourceLeft;
-    
+﻿using UnityEngine;
+using System.Collections;
+
+class Resource : MonoBehaviour {
+	public int x {get; set;}
+	public int y {get; set;}
+	public int resourceLeft;
+	GameObject resource;
 
     public Resource(int x, int y) {
         this.x = x;
@@ -15,4 +18,25 @@
         this.y = y;
         this.resourceLeft = ra;
     }
+	// Use this for initialization
+	void Start () {
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		
+	}
+	
+	void decreaseAmount(int amt) {
+		resourceLeft -= amt;
+
+		if (resourceLeft < 0) {
+			resourceLeft = 0;
+		}
+	}
+	
+	void OnTriggerEnter2D(Collider2D other) {
+		Debug.Log("In Resource OnTriggerEnter2D");
+	}
 }
+
