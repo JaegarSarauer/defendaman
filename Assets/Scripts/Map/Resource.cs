@@ -5,7 +5,7 @@ class Resource : MonoBehaviour {
 	public int x {get; set;}
 	public int y {get; set;}
 	public int resourceLeft;
-	GameObject resource;
+	Animator animator;
 
     public Resource(int x, int y) {
         this.x = x;
@@ -20,6 +20,7 @@ class Resource : MonoBehaviour {
     }
 	// Use this for initialization
 	void Start () {
+		animator = GetComponent<Animator>();
 	}
 	
 	// Update is called once per frame
@@ -36,7 +37,10 @@ class Resource : MonoBehaviour {
 	}
 	
 	void OnTriggerEnter2D(Collider2D other) {
-		Debug.Log("In Resource OnTriggerEnter2D");
+		Debug.Log ("Resource collider triggered");
+		if (resourceLeft == 0) {
+			animator.Play("tree_explode_animation2_");
+		}
 	}
 }
 

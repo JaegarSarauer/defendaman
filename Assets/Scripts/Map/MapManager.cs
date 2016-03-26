@@ -52,8 +52,10 @@ public class MapManager : MonoBehaviour {
     public List<Sprite> _mapWalkable;
     public List<Sprite> _mapSceneryObjects;
 
-    /* List of world resource objects */
+    // Resource Objects, Game Objects, Sprites
     private List<Resource> _mapResources = new List<Resource>();
+	public GameObject _mapResource;
+	public List<Sprite> _resourceSprites;
 
     //variables used for buildings
     public List<GameObject> buildingsCreated;
@@ -149,18 +151,32 @@ public class MapManager : MonoBehaviour {
         return _string_map;
     }
 
-    /**
-	 * Execute the appropriate action given a received event.
-	 * @param map 	2d int array of map values
-	 * @param id 	id of received event, i.e. its event type 
-	 * @param data 	ancillary data of map event
-	 */
+	/*------------------------------------------------------------------------------------------------------------------
+    -- FUNCTION: handle_event
+    --
+    -- DATE: February 16, 2016
+    --
+    -- REVISIONS: N/A
+    --
+    -- DESIGNER: Jaegar Sarauer, Krystle Bulalakaw
+    --
+    -- PROGRAMMER: Jaegar Sarauer, Thomas Yu, Krystle Bulalakaw
+    --
+    -- INTERFACE: void handle_event(int id, JSONClass message)
+    --				int id				id of received event, i.e. its event type 
+    --				JSONClass message	the message in JSON for map creation 
+    --
+    -- RETURNS: void.
+    --
+    -- NOTES:
+	-- Execute the appropriate action given a received event.
+    ----------------------------------------------------------------------------------------------------------------------*/
     public void handle_event(int id, JSONClass message) {
-        // Enums are not ints in C# :(
         switch ((EventType)id) {
             case EventType.CREATE_MAP:
                 create_map(message);
                 draw_map();
+				draw_resources();
                 instantiate_pool();
                 break;
             case EventType.RESOURCE_TAKEN:
@@ -180,10 +196,25 @@ public class MapManager : MonoBehaviour {
         }
     }
 
-    /**
-	 * Render map sprites to scene given a 2d map array. 
-	 * @param map 	2d int array of map values
-	 */
+	/*------------------------------------------------------------------------------------------------------------------
+    -- FUNCTION: create_map
+    --
+    -- DATE: February 16, 2016
+    --
+    -- REVISIONS: N/A
+    --
+    -- DESIGNER: Jaegar Sarauer, Krystle Bulalakaw
+    --
+    -- PROGRAMMER: Jaegar Sarauer, Thomas Yu, Krystle Bulalakaw
+    --
+    -- INTERFACE: create_map(JSONClass message)
+    --				JSONClass message	the message in JSON for map creation, containing map data
+    --
+    -- RETURNS: void.
+    --
+    -- NOTES:
+	-- Render map sprites to scene given a 2D map array. 
+    ----------------------------------------------------------------------------------------------------------------------*/
     private void create_map(JSONClass message) {
         _mapWidth = message["mapWidth"].AsInt;
         _mapHeight = message["mapHeight"].AsInt;
@@ -197,7 +228,6 @@ public class MapManager : MonoBehaviour {
             for (int y = 0; y < _mapHeight; y++)
                 _map[x, y] = mapX[y].AsInt;
         }
-
 
         JSONArray mapSceneryArrays = message["mapSceneryIDs"].AsArray;
         
@@ -230,10 +260,10 @@ public class MapManager : MonoBehaviour {
     -- RETURNS: void.
     --
     -- NOTES:
-    -- This function places sprites on the terrain. Currently it checks the value of the 2d array and if the array is 0, it randomly generates
-    -- one of two types of grass. If the array value is 1, it randomly generates oneof two types of water. This will be refactored so that all
-    -- there will be a different value in the array for each sprite. It also generates a 2collision box on the water tiles so thatr objects
-    -- cannot enter it.
+    -- This function places sprites on the terrain. Currently it checks the value of the 2d array and if the array is 0, 
+    -- it randomly generates one of two types of grass. If the array value is 1, it randomly generates oneof two types of 
+    -- water. This will be refactored so that all will be a different value in the array for each sprite. It also 
+    -- generates a 2collision box on the water tiles so thatr objects enter it.
     ----------------------------------------------------------------------------------------------------------------------*/
     private void draw_map() {
         if (_map == null)
@@ -256,7 +286,33 @@ public class MapManager : MonoBehaviour {
                     _scenery.GetComponent<SpriteRenderer>().sprite = _mapSceneryObjects[(_mapScenery[x, y]) % _mapSceneryObjects.Count];
                     Instantiate(_scenery, new Vector3(x, y, -1), Quaternion.identity);
                 }
-				//TODO: Instantiate resource assets
             }
-    }
+	}
+
+	/*------------------------------------------------------------------------------------------------------------------
+    -- FUNCTION: draw_resources
+    --
+    -- DATE: March 25, 2016
+    --
+    -- REVISIONS: N/A
+    --
+    -- DESIGNER: Jaegar Sarauer, Krystle Bulalakaw
+    --
+    -- PROGRAMMER: Krystle Bulalakaw
+    --
+    -- INTERFACE: void draw_resources()
+    --
+    -- RETURNS: void.
+    --
+    -- NOTES:
+    -- Creates resource game objects on the map. It goes through the list of resources and instantiates them based on 
+    -- their X and Y positions, which were pre-generated and assigned by the server. 
+    -- The sprite is set randomly from a range of sprites.
+    ----------------------------------------------------------------------------------------------------------------------*/
+	private void draw_resources() {
+		for (int i = 0; i < _mapResources.Count; i++) {
+			_mapResource.GetComponent<SpriteRenderer>().sprite = _resourceSprites[(UnityEngine.Random.Range(0, _resourceSprites.Count))];
+			Instantiate(_mapResource, new Vector3(_mapResources[i].x, _mapResources[i].y, -2), Quaternion.identity);
+		}
+	}
 }
