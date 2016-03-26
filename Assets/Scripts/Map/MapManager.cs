@@ -53,8 +53,8 @@ public class MapManager : MonoBehaviour {
     public List<Sprite> _mapSceneryObjects;
 
     // Resource Objects, Game Objects, Sprites
-    private List<Resource> _mapResources = new List<Resource>();
-	public GameObject _mapResource;
+    private List<GameObject> _mapResources = new List<GameObject>();
+	public GameObject mapResource;
 	public List<Sprite> _resourceSprites;
 
     //variables used for buildings
@@ -91,7 +91,6 @@ public class MapManager : MonoBehaviour {
         // Find all objects with the tag "Tile" and add them to the arraylist.
         _pooledObjects = GameObject.FindGameObjectsWithTag("Tile");
         print("pooledObjects size: " + _pooledObjects.Length);
-        
 
         // Deactivate all game objects on start.
         for (int i = 0; i < _pooledObjects.Length; i++) {
@@ -107,7 +106,7 @@ public class MapManager : MonoBehaviour {
 	 * view frustum.
 	 * 
 	 * Iterate through the list of pooled objects. If the object is in the camera, set it to 
-	 * active. Else, set it to unactive.
+	 * active. Else, set it to inactive.
 	 */
     private void check_object_pool() {
 		if (GameData.GameStart) {
@@ -115,8 +114,7 @@ public class MapManager : MonoBehaviour {
 	        frustumHeight = 2.0f * cameraDistance * Mathf.Tan(mainCamera.fieldOfView * 0.5f * Mathf.Deg2Rad);
 	        frustumWidth = frustumHeight * mainCamera.aspect;
 
-	        if (_pooledObjects != null) 
-			{
+	        if (_pooledObjects != null) {
 	            for (int i = 0; i < _pooledObjects.Length; i++) {
 	                if ((_pooledObjects[i].GetComponent<Transform>().position.x > cameraPosition.x + frustumWidth)
 	                    && (_pooledObjects[i].GetComponent<Transform>().position.x < cameraPosition.x - frustumWidth)
@@ -131,9 +129,17 @@ public class MapManager : MonoBehaviour {
 		}
     }
 
-    /**
-	 * Check the object pool in camera view and update their activation every second. Check if user wants to place a building
-	 */
+	/*------------------------------------------------------------------------------------------------------------------
+    -- FUNCTION: 	Update
+    -- DATE: 		February 16, 2016
+    -- REVISIONS: 	N/A
+    -- DESIGNER:  	Krystle Bulalakaw
+    -- PROGRAMMER: 	Krystle Bulalakaw
+    -- INTERFACE: 	Update(void)
+    -- RETURNS: 	void.
+    -- NOTES:
+    -- Called once per frame. Check the objects currently in view and update object pool.
+    ----------------------------------------------------------------------------------------------------------------------*/
     void Update() {
 		check_object_pool ();
 	}
@@ -153,21 +159,14 @@ public class MapManager : MonoBehaviour {
 
 	/*------------------------------------------------------------------------------------------------------------------
     -- FUNCTION: handle_event
-    --
     -- DATE: February 16, 2016
-    --
     -- REVISIONS: N/A
-    --
     -- DESIGNER: Jaegar Sarauer, Krystle Bulalakaw
-    --
     -- PROGRAMMER: Jaegar Sarauer, Thomas Yu, Krystle Bulalakaw
-    --
     -- INTERFACE: void handle_event(int id, JSONClass message)
     --				int id				id of received event, i.e. its event type 
     --				JSONClass message	the message in JSON for map creation 
-    --
     -- RETURNS: void.
-    --
     -- NOTES:
 	-- Execute the appropriate action given a received event.
     ----------------------------------------------------------------------------------------------------------------------*/
@@ -176,7 +175,6 @@ public class MapManager : MonoBehaviour {
             case EventType.CREATE_MAP:
                 create_map(message);
                 draw_map();
-				draw_resources();
                 instantiate_pool();
                 break;
             case EventType.RESOURCE_TAKEN:
@@ -197,23 +195,18 @@ public class MapManager : MonoBehaviour {
     }
 
 	/*------------------------------------------------------------------------------------------------------------------
-    -- FUNCTION: create_map
-    --
-    -- DATE: February 16, 2016
-    --
-    -- REVISIONS: N/A
-    --
-    -- DESIGNER: Jaegar Sarauer, Krystle Bulalakaw
-    --
-    -- PROGRAMMER: Jaegar Sarauer, Thomas Yu, Krystle Bulalakaw
-    --
-    -- INTERFACE: create_map(JSONClass message)
-    --				JSONClass message	the message in JSON for map creation, containing map data
-    --
-    -- RETURNS: void.
-    --
+    -- FUNCTION: 	create_map
+    -- DATE: 		February 16, 2016
+    -- REVISIONS: 	N/A
+    -- DESIGNER: 	Jaegar Sarauer, Krystle Bulalakaw
+    -- PROGRAMMER: 	Jaegar Sarauer, Thomas Yu, Krystle Bulalakaw
+    -- INTERFACE: 	create_map(JSONClass message)
+    --					JSONClass message	the message in JSON for map creation, containing map data
+    -- RETURNS: 	void.
     -- NOTES:
+    -- Parses the JSON message and initializes map objects.
 	-- Render map sprites to scene given a 2D map array. 
+	-- Instantiates a Resource game object and adds it to the list.
     ----------------------------------------------------------------------------------------------------------------------*/
     private void create_map(JSONClass message) {
         _mapWidth = message["mapWidth"].AsInt;
@@ -231,21 +224,30 @@ public class MapManager : MonoBehaviour {
 
         JSONArray mapSceneryArrays = message["mapSceneryIDs"].AsArray;
         
-
         for (int x = 0; x < _mapWidth; x++) {
             JSONArray mapSceneryX = mapSceneryArrays[x].AsArray;
             for (int y = 0; y < _mapHeight; y++)
                 _mapScenery[x, y] = mapSceneryX[y].AsInt;
         }
 
+		// Instantiates resource objects and adds them to list.
+		// Creates resource game objects on the map. It goes through the list of resources from the JSON message and instantiates them based on 
+		// their X and Y positions, which were pre-generated and assigned by the server. 
+		// The sprite is set randomly from a range of sprites (assigned in Unity Editor).
         JSONArray resources = message["mapResources"].AsArray;
         for (int i = 0; i < resources.Count; i++) {
-            _mapResources.Add(new Resource(resources[i][0].AsInt, resources[i][1].AsInt));
-        }
-    }
+			GameObject temp = Instantiate(mapResource, new Vector3(resources[i][0].AsInt, resources[i][1].AsInt, -2), Quaternion.identity) as GameObject;
+			mapResource.GetComponent<SpriteRenderer>().sprite = _resourceSprites[(UnityEngine.Random.Range(0, _resourceSprites.Count))];
+			temp.GetComponent<Resource>().x = resources[i][0].AsInt;
+			temp.GetComponent<Resource>().y = resources[i][1].AsInt;
+			temp.GetComponent<Resource>().amount = 10;
+			Debug.Log ("Adding resource at (" + temp.GetComponent<Resource>().x + ", " + temp.GetComponent<Resource>().y + ") Amount: " + temp.GetComponent<Resource>().amount);
+			_mapResources.Add (temp);
+		}
+	}
    
     /*------------------------------------------------------------------------------------------------------------------
-    -- FUNCTION: placeSprites
+    -- FUNCTION: draw_map
     --
     -- DATE: February 19, 2016
     --
@@ -255,7 +257,7 @@ public class MapManager : MonoBehaviour {
     --
     -- PROGRAMMER: Thomas Yu, Jaegar Sarauer
     --
-    -- INTERFACE: void placeSprites()
+    -- INTERFACE: void draw_map()
     --
     -- RETURNS: void.
     --
@@ -268,7 +270,7 @@ public class MapManager : MonoBehaviour {
     private void draw_map() {
         if (_map == null)
             return;
-        for (int x = 0; x < _mapWidth; x++)
+        for (int x = 0; x < _mapWidth; x++) {
             for (int y = 0; y < _mapHeight; y++) {
                 //If the 2D array is land
                 if (_map[x, y] >= 0 && _map[x, y] < 100) {
@@ -287,32 +289,6 @@ public class MapManager : MonoBehaviour {
                     Instantiate(_scenery, new Vector3(x, y, -1), Quaternion.identity);
                 }
             }
-	}
-
-	/*------------------------------------------------------------------------------------------------------------------
-    -- FUNCTION: draw_resources
-    --
-    -- DATE: March 25, 2016
-    --
-    -- REVISIONS: N/A
-    --
-    -- DESIGNER: Jaegar Sarauer, Krystle Bulalakaw
-    --
-    -- PROGRAMMER: Krystle Bulalakaw
-    --
-    -- INTERFACE: void draw_resources()
-    --
-    -- RETURNS: void.
-    --
-    -- NOTES:
-    -- Creates resource game objects on the map. It goes through the list of resources and instantiates them based on 
-    -- their X and Y positions, which were pre-generated and assigned by the server. 
-    -- The sprite is set randomly from a range of sprites.
-    ----------------------------------------------------------------------------------------------------------------------*/
-	private void draw_resources() {
-		for (int i = 0; i < _mapResources.Count; i++) {
-			_mapResource.GetComponent<SpriteRenderer>().sprite = _resourceSprites[(UnityEngine.Random.Range(0, _resourceSprites.Count))];
-			Instantiate(_mapResource, new Vector3(_mapResources[i].x, _mapResources[i].y, -2), Quaternion.identity);
 		}
 	}
 }
