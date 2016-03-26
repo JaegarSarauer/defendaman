@@ -64,10 +64,6 @@ class Resource : MonoBehaviour {
     -- on the game object.
     ----------------------------------------------------------------------------------------------------------------------*/
 	void Update () {
-		if (this.amount == 0) {
-			animator.SetTrigger("Depleted");
-			mollider.isTrigger = true;
-		}
 	}
 
 	/*------------------------------------------------------------------------------------------------------------------
@@ -83,10 +79,18 @@ class Resource : MonoBehaviour {
     -- Decreases the amount of a resource object by some number.
     ----------------------------------------------------------------------------------------------------------------------*/
 	void DecreaseAmount(int amount) {
+		string amt1, amt2;
+		amt1 = this.amount.ToString();
 		this.amount -= amount;
 
-		if (amount < 0) {
-			amount = 0;
+		amt2 = this.amount.ToString();
+		Debug.Log("Decreased resource amount from " + amt1 + " to " + amt2 + " at (" + this.x + ", " + this.y + ")" );
+
+		if (this.amount <= 0) {
+			this.amount = 0;
+			animator.SetTrigger("Depleted");
+			mollider.isTrigger = true;
+			Debug.Log ("Resource at (" + this.x + ", " + this.y + ") depleted" );
 		}
 	}
 
@@ -103,10 +107,13 @@ class Resource : MonoBehaviour {
     -- Triggered when the resource object's Collision2D detects collision with another Collision2D object.
     -- If the player interacted to claim the resource, decrease the resource amount by some number.
     ----------------------------------------------------------------------------------------------------------------------*/
-	void OnCollisionEnter2D(Collision2D other) {
-		Debug.Log ("Resource collision other: " + other.collider.name);
-		// If player action = collect resource
-		//		Decrease amount 
+	void OnCollisionStay2D(Collision2D other) {
+		//Debug.Log ("Resource collision other: " + other.collider.name);
+		if (other.collider.name.Contains("Player")) {
+			if (Input.GetKeyUp("e")) {
+				DecreaseAmount(1);
+			}
+		}
 	}
 }
 

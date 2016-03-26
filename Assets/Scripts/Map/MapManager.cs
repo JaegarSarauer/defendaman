@@ -240,7 +240,7 @@ public class MapManager : MonoBehaviour {
 			mapResource.GetComponent<SpriteRenderer>().sprite = _resourceSprites[(UnityEngine.Random.Range(0, _resourceSprites.Count))];
 			temp.GetComponent<Resource>().x = resources[i][0].AsInt;
 			temp.GetComponent<Resource>().y = resources[i][1].AsInt;
-			temp.GetComponent<Resource>().amount = 10;
+			temp.GetComponent<Resource>().amount = 5;
 			Debug.Log ("Adding resource at (" + temp.GetComponent<Resource>().x + ", " + temp.GetComponent<Resource>().y + ") Amount: " + temp.GetComponent<Resource>().amount);
 			_mapResources.Add (temp);
 		}
